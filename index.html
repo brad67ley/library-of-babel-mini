@@ -1,599 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mini Library of Babel</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Library of Babel</title>
     <style>
-      :root {
-        --bg-color: #121212;
-        --surface-color: #1e1e1e;
-        --primary-color: #6a5acd; /* A nice shade of purple */
-        --primary-hover: #5a4baf;
-        --text-color: #e0e0e0;
-        --text-muted: #888;
-        --border-color: #333;
-      }
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #6a5acd; /* A nice shade of purple */
+            --primary-hover: #5a4baf;
+            --text-color: #e0e0e0;
+            --text-muted: #888;
+            --border-color: #333;
+        }
 
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        margin: 0;
-        padding: 20px;
-        box-sizing: border-box;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-      }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-      .wrapper {
-        position: relative;
-        display: flex;
-        gap: 40px;
-        width: 100%;
-        max-width: 1000px;
-        background-color: var(--surface-color);
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-      }
-
-      .info-marker {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 24px;
-        height: 24px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: bold;
-        font-family: serif;
-        color: var(--text-muted);
-        cursor: help;
-        font-size: 16px;
-        z-index: 10;
-      }
-
-      .info-marker .tooltip {
-        position: absolute;
-        top: 120%;
-        left: 50%;
-        transform: translateX(-50%);
-        margin-top: 8px;
-        background-color: #333;
-        color: var(--text-color);
-        padding: 10px 15px;
-        border-radius: 6px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
-        font-size: 14px;
-        font-weight: normal;
-        width: 250px;
-        text-align: center;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.3s, visibility 0.3s;
-        pointer-events: none;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-      }
-
-      .info-marker:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-      }
-
-      .canvas-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      canvas {
-        border: 2px solid var(--border-color);
-        border-radius: 8px;
-        image-rendering: pixelated;
-        width: 100%;
-        max-width: 360px;
-        aspect-ratio: 1 / 1;
-        display: block;
-        background-color: #000;
-      }
-
-      .navigation-controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .icon-button {
-        background: none;
-        border: 2px solid var(--border-color);
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
-        color: var(--text-muted);
-      }
-
-      .icon-button:hover:not(:disabled) {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: var(--primary-color);
-        color: var(--text-color);
-      }
-
-      .icon-button:disabled {
-        cursor: not-allowed;
-        opacity: 0.4;
-      }
-
-      .icon-button svg {
-        width: 24px;
-        height: 24px;
-        fill: currentColor;
-      }
-
-      #playPauseButton {
-        width: 60px;
-        height: 60px;
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-      }
-
-      #playPauseButton:hover:not(:disabled) {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      .controls-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      h1 {
-        margin-top: 0;
-        color: #fff;
-      }
-      p {
-        color: var(--text-muted);
-        line-height: 1.6;
-        margin-bottom: 25px;
-      }
-      .id-container {
-        position: relative;
-        margin-bottom: 20px;
-      }
-
-      #imageId {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 12px 90px 12px 12px;
-        font-family: "Courier New", Courier, monospace;
-        background-color: var(--bg-color);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        border-radius: 6px;
-        font-size: 14px;
-        white-space: nowrap;
-        overflow-x: scroll;
-      }
-
-      .action-button {
-        padding: 8px 12px;
-        cursor: pointer;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 14px;
-        transition: background-color 0.2s;
-      }
-
-      #copyButton {
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: var(--primary-color);
-      }
-      #copyButton:hover {
-        background-color: var(--primary-hover);
-      }
-
-      .button-group {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 30px;
-      }
-      .button-group button,
-      .file-label {
-        flex-grow: 1;
-        padding: 12px;
-        font-size: 15px;
-        font-weight: bold;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-        text-align: center;
-        transition: background-color 0.2s;
-      }
-      .button-group .primary {
-        background-color: var(--primary-color);
-        color: white;
-      }
-      .button-group .primary:hover {
-        background-color: var(--primary-hover);
-      }
-      .button-group .secondary {
-        background-color: #333;
-        color: var(--text-color);
-      }
-      .button-group .secondary:hover {
-        background-color: #444;
-      }
-
-      input[type="file"] {
-        display: none;
-      }
-      hr {
-        border: 0;
-        height: 1px;
-        background: var(--border-color);
-        margin: 25px 0;
-      }
-      #status {
-        margin-top: 15px;
-        height: 20px;
-        font-weight: bold;
-        text-align: center;
-      }
-
-      @media (max-width: 800px) {
         .wrapper {
-          flex-direction: column;
-          padding: 20px;
+            position: relative;
+            display: flex;
+            gap: 40px;
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
         }
+
+        .info-marker {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-family: serif;
+            color: var(--text-muted);
+            cursor: help;
+            font-size: 16px;
+            z-index: 10;
+        }
+
+        .info-marker .tooltip {
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background-color: #333;
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            width: 250px;
+            text-align: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        
+        .info-marker:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .canvas-container {
-          order: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .controls-container {
-          order: 2;
+
+        canvas {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            image-rendering: pixelated;
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 1 / 1;
+            display: block;
+            background-color: #000;
         }
-      }
+        
+        .navigation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Allow controls to wrap on small screens */
+        }
+
+        .icon-button {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+            color: var(--text-muted);
+        }
+
+        .icon-button:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        .icon-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .icon-button svg { width: 24px; height: 24px; fill: currentColor; }
+        
+        #playPauseButton {
+            width: 60px;
+            height: 60px;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        #playPauseButton:hover:not(:disabled) {
+             background-color: var(--primary-color);
+             color: white;
+        }
+
+        .delay-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+        #delayInput {
+            width: 60px;
+            padding: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .controls-container { flex: 1; display: flex; flex-direction: column; }
+        h1 { margin-top: 0; color: #fff; font-size: 2.2em; }
+        p { color: var(--text-muted); line-height: 1.6; margin-bottom: 25px; }
+        .id-container { position: relative; margin-bottom: 20px; }
+
+        #imageId {
+            width: 100%; box-sizing: border-box; padding: 12px 90px 12px 12px;
+            font-family: 'Courier New', Courier, monospace; background-color: var(--bg-color);
+            border: 1px solid var(--border-color); color: var(--text-color);
+            border-radius: 6px; font-size: 14px; white-space: nowrap; overflow-x: scroll;
+        }
+        
+        .action-button {
+            padding: 8px 12px; cursor: pointer; color: white; border: none;
+            border-radius: 4px; font-weight: bold; font-size: 14px; transition: background-color 0.2s;
+        }
+        
+        #copyButton {
+            position: absolute; right: 5px; top: 50%;
+            transform: translateY(-50%); background-color: var(--primary-color);
+        }
+        #copyButton:hover { background-color: var(--primary-hover); }
+
+        .button-group { display: flex; gap: 10px; margin-bottom: 30px; }
+        .button-group button, .file-label {
+             flex-grow: 1; padding: 12px; font-size: 15px; font-weight: bold;
+             border-radius: 6px; border: none; cursor: pointer; text-align: center;
+             transition: background-color 0.2s;
+        }
+        .button-group .primary { background-color: var(--primary-color); color: white; }
+        .button-group .primary:hover { background-color: var(--primary-hover); }
+        .button-group .secondary { background-color: #333; color: var(--text-color); }
+        .button-group .secondary:hover { background-color: #444; }
+        
+        input[type="file"] { display: none; }
+        hr { border: 0; height: 1px; background: var(--border-color); margin: 25px 0; }
+        #status { margin-top: 15px; height: 20px; font-weight: bold; text-align: center; }
+
+        /* MODIFICATION: Enhanced Mobile Responsive Styles */
+        @media (max-width: 800px) {
+            body {
+                padding: 10px; /* Reduce padding on body for more screen real estate */
+            }
+
+            .wrapper {
+                flex-direction: column; /* Stack the main sections vertically */
+                padding: 20px; /* Adjust padding for smaller screens */
+                gap: 30px; /* Reduce the gap between stacked sections */
+            }
+
+            /* The order properties are optional as this is the default flow, but they are clear */
+            .canvas-container {
+                order: 1; 
+            }
+            .controls-container {
+                order: 2;
+                text-align: center; /* Center-align header text */
+            }
+
+            h1 {
+                font-size: 1.8em; /* Slightly smaller heading on mobile */
+            }
+
+            .button-group {
+                margin-bottom: 25px; /* Slightly less margin */
+            }
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="wrapper">
-      <div class="info-marker">
-        i
-        <div class="tooltip">
-          There are (256³)<sup>14400</sup> possible images! It is safe to say
-          you won't see the same one twice. Cherish it!
+        <div class="info-marker">i
+            <div class="tooltip">There are (256³)<sup>14400</sup> possible images! It is safe to say you won't see the same one twice. Cherish it!</div>
         </div>
-      </div>
-
-      <div class="canvas-container">
-        <canvas id="canvas" width="120" height="120"></canvas>
-        <div class="navigation-controls">
-          <button id="prevButton" class="icon-button" title="Previous Image">
-            <svg viewBox="0 0 24 24">
-              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-            </svg>
-          </button>
-          <button
-            id="playPauseButton"
-            class="icon-button"
-            title="Play Slideshow"
-          >
-            <svg id="playIcon" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <svg id="pauseIcon" viewBox="0 0 24 24" style="display: none">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-            </svg>
-          </button>
-          <button id="nextButton" class="icon-button" title="Next Image">
-            <svg viewBox="0 0 24 24">
-              <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="controls-container">
-        <header>
-          <h1>Mini Library of Babel</h1>
-          <p>
-            Every 120x120 image exists, each with a unique ID. Explore random
-            images, view one by its ID, or upload your own to find its place in
-            the library.
-          </p>
-        </header>
-
-        <div class="id-container">
-          <input
-            type="text"
-            id="imageId"
-            readonly
-            title="The unique ID of the current image"
-          />
-          <button id="copyButton" class="action-button">Copy</button>
+        
+        <div class="canvas-container">
+            <canvas id="canvas" width="120" height="120"></canvas>
+            <div class="navigation-controls">
+                <button id="prevButton" class="icon-button" title="Previous Image">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <button id="playPauseButton" class="icon-button" title="Play Slideshow">
+                    <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pauseIcon" viewBox="0 0 24 24" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button id="nextButton" class="icon-button" title="Next Image">
+                    <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                </button>
+                <div class="delay-control">
+                    <label for="delayInput">Delay (s):</label>
+                    <input type="number" id="delayInput" value="4" min="0.1" step="0.1" max="60" title="Slideshow delay in seconds">
+                </div>
+            </div>
         </div>
 
-        <div class="button-group">
-          <button id="shuffleButton" class="primary">Shuffle</button>
-          <button id="pasteButton" class="secondary">Paste & View</button>
+        <div class="controls-container">
+            <header>
+                <h1>Mini Library of Babel</h1>
+                <p>Every 120x120 image exists, each with a unique ID. Explore random images, view one by its ID, or upload your own to find its place in the library.</p>
+            </header>
+            
+            <div class="id-container">
+                <input type="text" id="imageId" readonly title="The unique ID of the current image">
+                <button id="copyButton" class="action-button">Copy</button>
+            </div>
+
+            <div class="button-group">
+                <button id="shuffleButton" class="primary">Shuffle</button>
+                <button id="pasteButton" class="secondary">Paste & View</button>
+            </div>
+            
+            <hr>
+
+            <label for="imageUpload" class="button-group primary file-label">Upload & Find Image</label>
+            <input type="file" id="imageUpload" accept="image/*">
+            <div id="status"></div>
         </div>
-
-        <hr />
-
-        <!-- MODIFICATION 1: Changed the label text to be more general -->
-        <label for="imageUpload" class="button-group primary file-label"
-          >Upload & Find Image</label
-        >
-        <input type="file" id="imageUpload" accept="image/*" />
-        <div id="status"></div>
-      </div>
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // DOM Elements
-        const canvas = document.getElementById("canvas"),
-          ctx = canvas.getContext("2d"),
-          idInput = document.getElementById("imageId"),
-          shuffleButton = document.getElementById("shuffleButton"),
-          copyButton = document.getElementById("copyButton"),
-          pasteButton = document.getElementById("pasteButton"),
-          imageUpload = document.getElementById("imageUpload"),
-          statusDiv = document.getElementById("status"),
-          prevButton = document.getElementById("prevButton"),
-          nextButton = document.getElementById("nextButton"),
-          playPauseButton = document.getElementById("playPauseButton"),
-          playIcon = document.getElementById("playIcon"),
-          pauseIcon = document.getElementById("pauseIcon");
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d'),
+                  idInput = document.getElementById('imageId'),
+                  shuffleButton = document.getElementById('shuffleButton'),
+                  copyButton = document.getElementById('copyButton'),
+                  pasteButton = document.getElementById('pasteButton'),
+                  imageUpload = document.getElementById('imageUpload'),
+                  statusDiv = document.getElementById('status'),
+                  prevButton = document.getElementById('prevButton'),
+                  nextButton = document.getElementById('nextButton'),
+                  playPauseButton = document.getElementById('playPauseButton'),
+                  playIcon = document.getElementById('playIcon'),
+                  pauseIcon = document.getElementById('pauseIcon'),
+                  delayInput = document.getElementById('delayInput');
 
-        // Constants
-        const WIDTH = 120,
-          HEIGHT = 120,
-          PIXEL_COUNT = WIDTH * HEIGHT,
-          RAW_BYTE_COUNT = PIXEL_COUNT * 3, // 14400 * 3 = 43200 bytes
-          ID_LENGTH = (RAW_BYTE_COUNT / 3) * 4, // Base64 length = 57600
-          SLIDESHOW_INTERVAL = 4000;
+            // Constants
+            const WIDTH = 120, HEIGHT = 120, PIXEL_COUNT = WIDTH * HEIGHT,
+                  RAW_BYTE_COUNT = PIXEL_COUNT * 3, // 14400 * 3 = 43200 bytes
+                  ID_LENGTH = (RAW_BYTE_COUNT / 3) * 4, // Base64 length = 57600
+                  DEFAULT_SLIDESHOW_INTERVAL = 4000;
 
-        // State
-        let history = [],
-          historyIndex = -1,
-          isPlaying = false,
-          playInterval = null;
+            // State
+            let history = [], historyIndex = -1, isPlaying = false, playInterval = null;
 
-        // --- Core Functions ---
+            // --- Core Functions ---
+            
+            function renderImageFromId(id) {
+                try {
+                    const binaryString = atob(id);
+                    if (binaryString.length !== RAW_BYTE_COUNT) {
+                       setStatus(`Error: Invalid ID data length.`, true); return false;
+                    }
 
-        function renderImageFromId(id) {
-          try {
-            const binaryString = atob(id);
-            if (binaryString.length !== RAW_BYTE_COUNT) {
-              setStatus(`Error: Invalid ID data length.`, true);
-              return false;
+                    const imageData = ctx.createImageData(WIDTH, HEIGHT);
+                    const data = imageData.data;
+                    for (let i = 0; i < PIXEL_COUNT; i++) {
+                        const dataIndex = i * 4;
+                        const byteIndex = i * 3;
+                        data[dataIndex]     = binaryString.charCodeAt(byteIndex);
+                        data[dataIndex + 1] = binaryString.charCodeAt(byteIndex + 1);
+                        data[dataIndex + 2] = binaryString.charCodeAt(byteIndex + 2);
+                        data[dataIndex + 3] = 255; // Alpha
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+                    idInput.value = id;
+                    setStatus(''); 
+                    return true;
+                } catch (e) {
+                    setStatus(`Error: ID is not a valid Base64 string.`, true);
+                    return false;
+                }
+            }
+            
+            function generateIdFromCanvas() {
+                const imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
+                let binaryString = '';
+                for (let i = 0; i < imageData.length; i += 4) {
+                    binaryString += String.fromCharCode(imageData[i], imageData[i + 1], imageData[i + 2]);
+                }
+                return btoa(binaryString);
             }
 
-            const imageData = ctx.createImageData(WIDTH, HEIGHT);
-            const data = imageData.data;
-            for (let i = 0; i < PIXEL_COUNT; i++) {
-              const dataIndex = i * 4;
-              const byteIndex = i * 3;
-              data[dataIndex] = binaryString.charCodeAt(byteIndex);
-              data[dataIndex + 1] = binaryString.charCodeAt(byteIndex + 1);
-              data[dataIndex + 2] = binaryString.charCodeAt(byteIndex + 2);
-              data[dataIndex + 3] = 255; // Alpha
+            function generateNewRandomImage() {
+                const imageData = ctx.createImageData(WIDTH, HEIGHT);
+                const data = imageData.data;
+                let binaryString = '';
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = Math.floor(Math.random() * 256);
+                    const g = Math.floor(Math.random() * 256);
+                    const b = Math.floor(Math.random() * 256);
+                    data[i] = r;
+                    data[i+1] = g;
+                    data[i+2] = b;
+                    data[i+3] = 255;
+                    binaryString += String.fromCharCode(r, g, b);
+                }
+                ctx.putImageData(imageData, 0, 0);
+                const id = btoa(binaryString);
+                idInput.value = id;
+                updateHistory(id);
             }
-            ctx.putImageData(imageData, 0, 0);
-            idInput.value = id;
-            setStatus("");
-            return true;
-          } catch (e) {
-            setStatus(`Error: ID is not a valid Base64 string.`, true);
-            return false;
-          }
-        }
 
-        function generateIdFromCanvas() {
-          const imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
-          let binaryString = "";
-          for (let i = 0; i < imageData.length; i += 4) {
-            binaryString += String.fromCharCode(
-              imageData[i],
-              imageData[i + 1],
-              imageData[i + 2]
-            );
-          }
-          return btoa(binaryString);
-        }
-
-        function generateNewRandomImage() {
-          const imageData = ctx.createImageData(WIDTH, HEIGHT);
-          const data = imageData.data;
-          let binaryString = "";
-          for (let i = 0; i < data.length; i += 4) {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            data[i] = r;
-            data[i + 1] = g;
-            data[i + 2] = b;
-            data[i + 3] = 255;
-            binaryString += String.fromCharCode(r, g, b);
-          }
-          ctx.putImageData(imageData, 0, 0);
-          const id = btoa(binaryString);
-          idInput.value = id;
-          updateHistory(id);
-        }
-
-        // --- History & Navigation ---
-        function updateHistory(newId) {
-          if (historyIndex < history.length - 1)
-            history = history.slice(0, historyIndex + 1);
-          history.push(newId);
-          historyIndex = history.length - 1;
-          updateNavButtons();
-        }
-
-        function navigateHistory(direction) {
-          if (direction === -1) {
-            // Going Back
-            if (historyIndex > 0) {
-              historyIndex--;
-              renderImageFromId(history[historyIndex]);
-            } else {
-              generateNewRandomImage();
+            // --- History & Navigation ---
+            function updateHistory(newId) {
+                if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
+                history.push(newId);
+                historyIndex = history.length - 1;
+                updateNavButtons();
             }
-          } else if (direction === 1) {
-            // Going Forward
-            if (historyIndex < history.length - 1) {
-              historyIndex++;
-              renderImageFromId(history[historyIndex]);
-            } else {
-              generateNewRandomImage();
+
+            function navigateHistory(direction) {
+                if (direction === -1) { // Going Back
+                    if (historyIndex > 0) {
+                        historyIndex--;
+                        renderImageFromId(history[historyIndex]);
+                    } else {
+                        generateNewRandomImage();
+                    }
+                } else if (direction === 1) { // Going Forward
+                    if (historyIndex < history.length - 1) {
+                        historyIndex++;
+                        renderImageFromId(history[historyIndex]);
+                    } else {
+                        generateNewRandomImage();
+                    }
+                }
+                updateNavButtons();
             }
-          }
-          updateNavButtons();
-        }
+            
+            function updateNavButtons() {
+                prevButton.disabled = false;
+                nextButton.disabled = false;
+            }
+            
+            // --- Slideshow ---
+            function togglePlay() {
+                isPlaying = !isPlaying;
+                playIcon.style.display = isPlaying ? 'none' : 'block';
+                pauseIcon.style.display = isPlaying ? 'block' : 'none';
+                playPauseButton.title = isPlaying ? 'Pause Slideshow' : 'Play Slideshow';
+                
+                if (isPlaying) {
+                    let delay = parseFloat(delayInput.value) * 1000;
+                    if (isNaN(delay) || delay < 100) {
+                        delay = DEFAULT_SLIDESHOW_INTERVAL;
+                    }
+                    generateNewRandomImage();
+                    playInterval = setInterval(generateNewRandomImage, delay);
+                } else {
+                    clearInterval(playInterval);
+                }
+            }
 
-        function updateNavButtons() {
-          prevButton.disabled = false;
-          nextButton.disabled = false;
-        }
+            // --- UI & Helpers ---
+            function setStatus(message, isError = false) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = isError ? '#ff6b6b' : '#4CAF50';
+            }
 
-        // --- Slideshow ---
-        function togglePlay() {
-          isPlaying = !isPlaying;
-          playIcon.style.display = isPlaying ? "none" : "block";
-          pauseIcon.style.display = isPlaying ? "block" : "none";
-          playPauseButton.title = isPlaying
-            ? "Pause Slideshow"
-            : "Play Slideshow";
-          if (isPlaying) {
+            // --- Event Listeners ---
+            shuffleButton.addEventListener('click', generateNewRandomImage);
+            prevButton.addEventListener('click', () => navigateHistory(-1));
+            nextButton.addEventListener('click', () => navigateHistory(1));
+            playPauseButton.addEventListener('click', togglePlay);
+
+            copyButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(idInput.value).then(() => {
+                    const originalText = copyButton.textContent;
+                    copyButton.textContent = 'Copied!';
+                    setTimeout(() => { copyButton.textContent = originalText; }, 1500);
+                }).catch(err => setStatus('Failed to copy ID.', true));
+            });
+
+            pasteButton.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    if (renderImageFromId(text.trim())) {
+                        updateHistory(text.trim());
+                    }
+                } catch (err) { setStatus('Could not read from clipboard.', true); }
+            });
+
+            imageUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const sourceWidth = img.width;
+                        const sourceHeight = img.height;
+                        const cropSize = Math.min(sourceWidth, sourceHeight);
+                        const sx = (sourceWidth - cropSize) / 2;
+                        const sy = (sourceHeight - cropSize) / 2;
+                        
+                        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                        ctx.drawImage(img, sx, sy, cropSize, cropSize, 0, 0, WIDTH, HEIGHT);
+                        
+                        const id = generateIdFromCanvas();
+                        setStatus(`Processed image and found its ID.`);
+                        renderImageFromId(id);
+                        updateHistory(id);
+                    };
+                    img.onerror = () => {
+                        setStatus(`Error: Could not load the selected file as an image.`, true);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                event.target.value = '';
+            });
+
+            // --- Initial Load ---
             generateNewRandomImage();
-            playInterval = setInterval(
-              generateNewRandomImage,
-              SLIDESHOW_INTERVAL
-            );
-          } else {
-            clearInterval(playInterval);
-          }
-        }
-
-        // --- UI & Helpers ---
-        function setStatus(message, isError = false) {
-          statusDiv.textContent = message;
-          statusDiv.style.color = isError ? "#ff6b6b" : "#4CAF50";
-        }
-
-        // --- Event Listeners ---
-        shuffleButton.addEventListener("click", generateNewRandomImage);
-        prevButton.addEventListener("click", () => navigateHistory(-1));
-        nextButton.addEventListener("click", () => navigateHistory(1));
-        playPauseButton.addEventListener("click", togglePlay);
-
-        copyButton.addEventListener("click", () => {
-          navigator.clipboard
-            .writeText(idInput.value)
-            .then(() => {
-              const originalText = copyButton.textContent;
-              copyButton.textContent = "Copied!";
-              setTimeout(() => {
-                copyButton.textContent = originalText;
-              }, 1500);
-            })
-            .catch((err) => setStatus("Failed to copy ID.", true));
         });
-
-        pasteButton.addEventListener("click", async () => {
-          try {
-            const text = await navigator.clipboard.readText();
-            if (renderImageFromId(text.trim())) {
-              updateHistory(text.trim());
-            }
-          } catch (err) {
-            setStatus("Could not read from clipboard.", true);
-          }
-        });
-
-        // MODIFICATION 2: Reworked the entire image upload handler
-        imageUpload.addEventListener("change", (event) => {
-          const file = event.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-              // The old logic that checked for 120x120 is removed.
-              // We now calculate the largest center square to crop from the source.
-
-              const sourceWidth = img.width;
-              const sourceHeight = img.height;
-
-              // Determine the size of the square crop (the smaller of width/height)
-              const cropSize = Math.min(sourceWidth, sourceHeight);
-
-              // Calculate the top-left corner (sx, sy) of the crop area to center it
-              const sx = (sourceWidth - cropSize) / 2;
-              const sy = (sourceHeight - cropSize) / 2;
-
-              // Clear the canvas before drawing the new image
-              ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-              // Use the advanced drawImage to crop and resize in one step
-              // context.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-              // sx, sy, sWidth, sHeight: The source rectangle (our crop)
-              // dx, dy, dWidth, dHeight: The destination rectangle on the canvas
-              ctx.drawImage(
-                img,
-                sx,
-                sy,
-                cropSize,
-                cropSize,
-                0,
-                0,
-                WIDTH,
-                HEIGHT
-              );
-
-              // Now that the canvas has the 120x120 pixels, generate its ID
-              const id = generateIdFromCanvas();
-              setStatus(`Processed image and found its ID.`);
-              renderImageFromId(id);
-              updateHistory(id);
-            };
-            img.onerror = () => {
-              setStatus(
-                `Error: Could not load the selected file as an image.`,
-                true
-              );
-            };
-            img.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-          event.target.value = ""; // Reset file input to allow uploading the same file again
-        });
-
-        // --- Initial Load ---
-        generateNewRandomImage();
-      });
     </script>
-  </body>
+</body>
 </html>
